@@ -1,0 +1,4 @@
+.DS_Store
+src/finance.db
+src/transactions.txt
+src/debts.txt

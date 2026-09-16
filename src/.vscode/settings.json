@@ -1,0 +1,7 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "/Users/thinhpx2k4/Documents/JavaProject/PersonalExpense Tracker/lib/sqlite-jdbc-3.53.4.0-natives-mac.jar",
+        "/Users/thinhpx2k4/Documents/JavaProject/PersonalExpense Tracker/lib/sqlite-jdbc-3.53.4.0-without-natives.jar"
+    ]
+}
