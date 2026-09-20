@@ -16,11 +16,12 @@ public class TransactionManager {
     // 取引 CRUD（登録・表示・編集・削除）
     // ================================================
     // 取引履歴表示
-    public static void displayTransactions(List<Transaction> transactions){
+    public static void displayTransactions(){
         System.out.println("==============================");
         System.out.println("          取引履歴");
         System.out.println("==============================");
         System.out.println();
+        List<Transaction> transactions = manager.DatabaseManager.getAllTransactions();
         printTransactionList(transactions);
     }
     // サマリー計算
@@ -37,7 +38,7 @@ public class TransactionManager {
         return new TotalSummary(totalExpense, totalIncome);
     }
     // 取引登録
-    public static void addTransaction(Scanner scanner, List<Transaction> transactions){
+    public static void addTransaction(Scanner scanner){
         System.out.println("取引を追加します。");
         System.out.println();
         LocalDate date = selectDate(scanner);
@@ -45,20 +46,15 @@ public class TransactionManager {
         TransactionType type = selectType(scanner);
         Category category = selectCategory(scanner, type);
         int amount = inputAmount(scanner);
-        Transaction newTransaction = new Transaction(
-            date,
-            type,
-            category,
-            amount
-        );
-        transactions.add(newTransaction);
+        DatabaseManager.insertTransaction(date.toString(), type.toString(), category.toString(), amount);
     }
     // サマリー表示
-    public static void displaySummary(List<Transaction> transactions){
+    public static void displaySummary(){
         System.out.println("==============================");
         System.out.println("          サマリー");
         System.out.println("==============================");
         System.out.println();
+        List <Transaction> transactions = manager.DatabaseManager.getAllTransactions();
         TotalSummary summary = calculateTotals(transactions);
         System.out.println("支出合計: " + summary.getTotalExpense() + "円");
         System.out.println("収入合計: " + summary.getTotalIncome() + "円");
@@ -71,50 +67,63 @@ public class TransactionManager {
         }
     } 
     // 取引編集
-    public static void editTransaction(Scanner scanner, List<Transaction> transactions){
+    public static void editTransaction(Scanner scanner){
 
         System.out.println("==============================");
         System.out.println("          取引編集");
         System.out.println("==============================");
         System.out.println();
+        List<Transaction> transactions = DatabaseManager.getAllTransactions();
         printTransactionList(transactions);
-        int transactionId = inputTransactionId(scanner);
-        Transaction targetTransaction = findTransactionById(transactions, transactionId);
-        if(targetTransaction == null){
-            System.out.println("該当する取引がありません。");
-            }else{
+        if(transactions.isEmpty()){
+            return;
+            }
+            System.out.print("編集する番号を選んでください（一覧の番号）：");
+            int number = scanner.nextInt();
+            scanner.nextLine();
+            int index = number - 1;
+            if(index < 0 || index >= transactions.size()){
+                System.out.println("該当する番号がありません。");
+            }
+            else{
+                Transaction targeTransaction = transactions.get(index);
+                int id = targeTransaction.getId();
                 LocalDate date = selectDate(scanner);
-                targetTransaction.setDate(date);
                 TransactionType type = selectType(scanner);
-                targetTransaction.setType(type);
                 Category category = selectCategory(scanner, type);
-                targetTransaction.setCategory(category);
                 int amount = inputAmount(scanner);
-                targetTransaction.setAmount(amount);
+                DatabaseManager.updateTransaction(id, date.toString(), type.toString(), category.toString(), amount);
+                System.out.println("取引を編集しました。");
             }
     }
     // 取引削除
-    public static void deleteTransaction(Scanner scanner, List<Transaction> transactions){
+    public static void deleteTransaction(Scanner scanner){
 
         System.out.println("==============================");
         System.out.println("          取引削除");
         System.out.println("==============================");
         System.out.println();
+        List<Transaction> transactions = DatabaseManager.getAllTransactions();
         printTransactionList(transactions);
-        int transactionId = inputTransactionId(scanner);
-        Transaction targetTransaction = findTransactionById(transactions, transactionId);
-        if(targetTransaction == null){
+        if(transactions.isEmpty()){
+            return;
+        }
+        System.out.print("削除する番号を選んでください（一覧の番号）：");
+        int number = scanner.nextInt();
+        scanner.nextLine();
+        int index = number - 1;
+        if(index < 0 || index >= transactions.size()){
             System.out.println("該当する取引がありません。");
         }else{
+            Transaction targetTransaction = transactions.get(index);
             boolean validAnswer = false;
-            scanner.nextLine();
             while(!validAnswer){
                 printTransaction(targetTransaction);
                 System.out.print("この取引を削除しますか？ (y/n): ");
                 String answer = scanner.nextLine();
                 if(answer.equalsIgnoreCase("y")){
                     validAnswer = true;
-                    transactions.remove(targetTransaction);
+                    DatabaseManager.deleteTransaction(targetTransaction.getId());
                     System.out.println("取引を削除しました。");
                 }else if(answer.equalsIgnoreCase("n")){
                     validAnswer = true;
@@ -129,11 +138,12 @@ public class TransactionManager {
     // 取引検索
     // ================================================
     //取引検索(category)
-    public static void searchByCategory(Scanner scanner, List<Transaction> transactions){
+    public static void searchByCategory(Scanner scanner){
         System.out.println("==============================");
         System.out.println("          カテゴリーで検索");
         System.out.println("==============================");
         System.out.println();
+        List<Transaction> transactions = DatabaseManager.getAllTransactions();
         Category category = selectAnyCategory(scanner);
         boolean found = false;
         int resultCount = 0;
@@ -155,7 +165,7 @@ public class TransactionManager {
         }
     }
     //取引検索(date)
-    public static void searchByDate(Scanner scanner, List<Transaction> transactions){
+    public static void searchByDate(Scanner scanner){
         System.out.println("==============================");
         System.out.println("          日付で検索");
         System.out.println("==============================");
@@ -164,6 +174,7 @@ public class TransactionManager {
         boolean found = false;
         int resultCount = 0;
         int totalAmount = 0;
+        List<Transaction> transactions = DatabaseManager.getAllTransactions();
         for(Transaction t: transactions){
             if(t.getDate().equals(searchDate)){
                 found = true;
@@ -181,7 +192,7 @@ public class TransactionManager {
         }
     }
     //取引検索(menu)
-    public static void searchMenu(Scanner scanner, List<Transaction> transactions){
+    public static void searchMenu(Scanner scanner){
         System.out.println("==============================");
         System.out.println("          取引検索");
         System.out.println("==============================");
@@ -198,10 +209,10 @@ public class TransactionManager {
                 int searchChoice = scanner.nextInt();
                 scanner.nextLine();
                 if(searchChoice == 1){
-                    searchByCategory(scanner, transactions);
+                    searchByCategory(scanner);
                     validsearchChoice = true;
                 }else if(searchChoice == 2){
-                    searchByDate(scanner, transactions);
+                    searchByDate(scanner);
                     validsearchChoice = true;
                 }else{
                     System.out.println("無効な番号です。");
@@ -234,11 +245,12 @@ public class TransactionManager {
         return categoryTotals;
     }
     // カテゴリー別支出表示
-    public static void displayCategoryStatistics(List<Transaction> transactions){
+    public static void displayCategoryStatistics(){
         System.out.println("==============================");
         System.out.println("       カテゴリー別支出");
         System.out.println("==============================");
         System.out.println();
+        List <Transaction> transactions = manager.DatabaseManager.getAllTransactions();
         Map<Category, Integer> categoryTotals = calculateCategoryTotals(transactions);
         TotalSummary summary = calculateTotals(transactions);
         int totalExpense = summary.getTotalExpense();
@@ -435,35 +447,6 @@ public class TransactionManager {
        }
        return amount;
    }
-    // 取引ID入力（編集・削除で共通利用）
-    private static int inputTransactionId(Scanner scanner){
-       boolean validId = false;
-       int transactionId = 0;
-       while(!validId){
-           System.out.print("取引IDを入力してください:");
-           try {
-               transactionId = scanner.nextInt();
-               if(transactionId > 0){
-                   validId = true;
-               }else{
-                   System.out.println("IDは0より大きい値を入力してください。");
-               }
-           } catch (InputMismatchException e) {
-               System.out.println("数字を入力してください。");
-               scanner.nextLine();
-           }
-       }
-       return transactionId;
-   }
-    // 取引検索（IDで検索・編集・削除で共通利用）
-    private static Transaction findTransactionById(List<Transaction> transactions, int transactionId){
-       for(Transaction t : transactions){
-           if(t.getId() == transactionId){
-               return t;
-           }
-       }
-       return null;
-    }
     // カテゴリー選択（検索専用・全カテゴリー表示
     private static Category selectAnyCategory(Scanner scanner){
         boolean validCategory = false;

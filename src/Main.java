@@ -12,6 +12,15 @@ public class Main {
         DatabaseManager.createDebtsTable();
         DatabaseManager.insertTransaction("2026-09-14", "EXPENSE", "FOOD", 1000);
         DatabaseManager.insertDebt("Test", 10000, 0);
+        // ↓ Test DELETE tạm thời — sẽ xoá ở bước sau
+        System.out.println("--- Trước khi xoá ---");
+        DatabaseManager.printAllTransactions();
+        DatabaseManager.deleteTransaction(1);
+        System.out.println("--- Sau khi xoá ID:1 ---");
+        DatabaseManager.printAllTransactions();
+        // ↑ hết phần test DELETE tạm thời
+
+
         List<Transaction> transactions = FileManager.loadTransactions();
         List<Debt> debts = FileManager.loadDebts();
         Scanner scanner = new Scanner(System.in);
@@ -36,28 +45,28 @@ public class Main {
             scanner.nextLine();
             switch (choice) {
                 case 1:
-                    TransactionManager.addTransaction(scanner, transactions);
+                    TransactionManager.addTransaction(scanner);
                     break;
                 case 2:
-                    TransactionManager.displayTransactions(transactions);
+                    TransactionManager.displayTransactions();
                     break;
                 case 3:
-                    TransactionManager.displaySummary(transactions);
+                    TransactionManager.displaySummary();
                     break;
                 case 4:
-                    TransactionManager.searchMenu(scanner, transactions);
+                    TransactionManager.searchMenu(scanner);
                     break;
                 case 5:
-                    TransactionManager.editTransaction(scanner, transactions);
+                    TransactionManager.editTransaction(scanner);
                     break;
                 case 6:
-                    TransactionManager.deleteTransaction(scanner, transactions);
+                    TransactionManager.deleteTransaction(scanner);
                     break;
                 case 7:
-                    TransactionManager.displayCategoryStatistics(transactions);
+                    TransactionManager.displayCategoryStatistics();
                     break;
                 case 8:
-                    DebtManager.debtMenu(scanner, debts);
+                    DebtManager.debtMenu(scanner);
                     break;
                 case 9:
                     FileManager.saveTransactions(transactions);

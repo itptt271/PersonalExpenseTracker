@@ -12,39 +12,47 @@ public class DebtManager {
     // 借金 CRUD（登録・表示・返済）
     // ================================================
     // 借金登録
-    public static void addDebt(Scanner scanner, List<Debt> debts){
+    public static void addDebt(Scanner scanner){
         System.out.println("借金を追加します。");
         System.out.println();
         String name = selectCreditorName(scanner);
         int amount = selectDebtAmount(scanner);
-        Debt newDebt = new Debt(name, amount);
-        debts.add(newDebt);
+        DatabaseManager.insertDebt(name, amount, 0);
     }
     // 借金一覧表示
-    public static void displayDebts(List<Debt> debts){
+    public static void displayDebts(){
         System.out.println("==============================");
         System.out.println("          借金一覧");
         System.out.println("==============================");
         System.out.println();
+        List<Debt> debts = DatabaseManager.getAllDebts();
         printDebtList(debts);
     }
     // 返済する
-    public static void addPayment(Scanner scanner, List<Debt> debts){
+    public static void addPayment(Scanner scanner){
         System.out.println("==============================");
         System.out.println("          返済");
         System.out.println("==============================");
         System.out.println();
+        List<Debt> debts = DatabaseManager.getAllDebts();
         printDebtList(debts);
-        int debtId = inputDebtId(scanner);
-        Debt targetDebt = findDebtById(debts, debtId);
-        if(targetDebt == null){
+        if(debts.isEmpty()){
+            return;
+        }
+        System.out.print("返済する番号を選んでください（一覧の番号）：");
+        int number = scanner.nextInt();
+        scanner.nextLine();
+        int index = number - 1;
+        if(index < 0 || index >= debts.size()){
             System.out.println("該当する借金がありません。");
         }else{
+            Debt targetDebt = debts.get(index);
             printDebt(targetDebt);
             System.out.println();
             int remaining = targetDebt.getRemainingAmount();
             int payment = selectPaymentAmount(scanner, remaining);
-            targetDebt.addPayment(payment);
+            int newPaidAmount = targetDebt.getPaidAmount() + payment;
+            DatabaseManager.updateDebtPayment(targetDebt.getId(), newPaidAmount);
             System.out.println("返済を記録しました。");
         }
     }
@@ -57,7 +65,7 @@ public class DebtManager {
         return total;
     }
     // 借金メニュー
-    public static void debtMenu(Scanner scanner, List<Debt> debts){
+    public static void debtMenu(Scanner scanner){
         boolean back = false;
         while(!back){
             System.out.println("==============================");
@@ -76,15 +84,16 @@ public class DebtManager {
                 scanner.nextLine();
                 switch (choice) {
                     case 1:
-                        addDebt(scanner, debts);
+                        addDebt(scanner);
                         break;
                     case 2:
-                        displayDebts(debts);
+                        displayDebts();
                         break;
                     case 3:
-                        addPayment(scanner, debts);
+                        addPayment(scanner);
                         break;
                     case 4:
+                        List<Debt> debts = DatabaseManager.getAllDebts();
                         int totalRemaining = calculateTotalRemainingDebt(debts);
                         System.out.println();
                         System.out.println("借金合計: " + totalRemaining + "円");
@@ -177,35 +186,6 @@ public class DebtManager {
         + " | " + debt.getAmount() + "円 | 残り:" + debt.getRemainingAmount()
         + "円 | " + String.format(Locale.US, "%.0f",debt.getProgressPercentage()) 
         + "% | " + status);
-    }
-    // 借金検索（IDで検索・返済で共通利用）
-    private static Debt findDebtById(List<Debt> debts, int debtId){
-        for(Debt t : debts){
-            if(t.getId() == debtId){
-                return t;
-            }
-        }
-        return null;
-    }
-    // 借金ID入力（返済で使用）
-    private static int inputDebtId(Scanner scanner){
-        int debtId = 0;
-        boolean validId = false;
-        while(!validId){
-            System.out.print("借金IDを入力してください:");
-            try {
-                debtId = scanner.nextInt();
-                if(debtId > 0){
-                    validId = true;
-                }else{
-                    System.out.println("IDは0より大きい値を入力してください。");
-                }
-            } catch (InputMismatchException e) {
-                System.out.println("数字を入力してください。");
-                scanner.nextLine();
-            }
-        }
-        return debtId;
     }
     // 借金一覧を出力（ヘッダーなし・複数箇所で共通利用）
     private static void printDebtList(List<Debt> debts){
