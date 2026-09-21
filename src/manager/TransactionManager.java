@@ -124,7 +124,6 @@ public class TransactionManager {
                 if(answer.equalsIgnoreCase("y")){
                     validAnswer = true;
                     DatabaseManager.deleteTransaction(targetTransaction.getId());
-                    System.out.println("取引を削除しました。");
                 }else if(answer.equalsIgnoreCase("n")){
                     validAnswer = true;
                     System.out.println("削除をキャンセルしました。");
@@ -265,7 +264,9 @@ public class TransactionManager {
         }
         System.out.println();
         Category mostUsendCategory = findMostUsedCategory(transactions);
+       if(mostUsendCategory != null){
         System.out.println("一番使ったカテゴリー: " + mostUsendCategory.getJapaneseName());
+       }
     }
     // 一番使ったカテゴリー
     public static Category findMostUsedCategory(List<Transaction> transactions){

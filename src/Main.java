@@ -1,28 +1,11 @@
-import java.util.List;
 import java.util.Scanner;
 import manager.DatabaseManager;
 import manager.DebtManager;
-import manager.FileManager;
 import manager.TransactionManager;
-import model.Transaction;
-import model.Debt;
 public class Main {
     public static void main(String[] args) {
         DatabaseManager.createTransactionsTable();
         DatabaseManager.createDebtsTable();
-        DatabaseManager.insertTransaction("2026-09-14", "EXPENSE", "FOOD", 1000);
-        DatabaseManager.insertDebt("Test", 10000, 0);
-        // ↓ Test DELETE tạm thời — sẽ xoá ở bước sau
-        System.out.println("--- Trước khi xoá ---");
-        DatabaseManager.printAllTransactions();
-        DatabaseManager.deleteTransaction(1);
-        System.out.println("--- Sau khi xoá ID:1 ---");
-        DatabaseManager.printAllTransactions();
-        // ↑ hết phần test DELETE tạm thời
-
-
-        List<Transaction> transactions = FileManager.loadTransactions();
-        List<Debt> debts = FileManager.loadDebts();
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
         while(running){
@@ -69,8 +52,6 @@ public class Main {
                     DebtManager.debtMenu(scanner);
                     break;
                 case 9:
-                    FileManager.saveTransactions(transactions);
-                    FileManager.saveDebts(debts);
                     System.out.println("終了します。");
                     running = false;
                     break;

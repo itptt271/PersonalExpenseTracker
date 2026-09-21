@@ -53,7 +53,6 @@ public class DebtManager {
             int payment = selectPaymentAmount(scanner, remaining);
             int newPaidAmount = targetDebt.getPaidAmount() + payment;
             DatabaseManager.updateDebtPayment(targetDebt.getId(), newPaidAmount);
-            System.out.println("返済を記録しました。");
         }
     }
     // 借金合計を計算
